@@ -7,6 +7,7 @@ const ejsMate = require('ejs-mate');
 const Campground = require('./models/campground');
 const ExpressError = require('./utilities/ExpressError');
 const catchAsyncError = require('./utilities/catchAsyncError');
+const { campgroundSchema } = require('./schemas');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp')
     .then(() => {
@@ -29,6 +30,17 @@ app.get('/', (req, res) => {
     res.render('home');
 });
 
+const validateCampground = (req, res, next) => {
+    const { error } = campgroundSchema.validate(req.body);
+
+    if (error) {
+        const errorMessage = error.details.map(el => el.message).join(',');
+        throw new ExpressError(errorMessage, 400);
+    }
+
+    next();
+}
+
 app.get('/campgrounds', catchAsyncError(async (req, res) => {
     const campgrounds = await Campground.find({});
 
@@ -37,7 +49,7 @@ app.get('/campgrounds', catchAsyncError(async (req, res) => {
     });
 }));
 
-app.post('/campgrounds', catchAsyncError(async (req, res, next) => {
+app.post('/campgrounds', validateCampground,  catchAsyncError(async (req, res, next) => {
     const campground = new Campground(req.body.campground);
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
@@ -55,7 +67,7 @@ app.get('/campgrounds/:id', catchAsyncError(async (req, res) => {
     });
 }));
 
-app.put('/campgrounds/:id', catchAsyncError(async (req, res) => {
+app.put('/campgrounds/:id', validateCampground, catchAsyncError(async (req, res) => {
     const campground = await Campground.findByIdAndUpdate(req.params.id, req.body.campground);
     res.redirect(`/campgrounds/${campground._id}`);
 }));
