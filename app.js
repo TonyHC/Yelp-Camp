@@ -3,6 +3,8 @@ const path = require('path');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
+const session = require('express-session');
+const flash = require('connect-flash');
 const ExpressError = require('./utilities/ExpressError');
 
 const campgroundRoutes = require('./routes/campground');
@@ -25,6 +27,31 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true })); // Built-in middleware that runs during request/response lifecycle
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
+app.use(session({
+    secret: 'aplaceholdersecretfornow',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        httpOnly: true,
+        expires: Date.now() + (1000 * 60 * 60 * 24 * 7),
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    }
+}));
+app.use(flash());
+
+app.use((req, res, next) => {
+    res.locals.flashMessages = [
+        {
+            key: 'success',
+            value: req.flash('success')
+        },
+        {
+            key: 'danger',
+            value: req.flash('error')
+        }
+    ];
+    next();
+});
 
 app.use('/campgrounds', campgroundRoutes);
 app.use('/campgrounds/:id/reviews', reviewRoutes);
