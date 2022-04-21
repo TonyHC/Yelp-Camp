@@ -51,6 +51,11 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
+    if(!['/login', '/register', '/'].includes(req.originalUrl)) {
+        // Store the url path of requested page 
+        req.session.returnTo = req.originalUrl; 
+    }
+
     res.locals.flashMessages = [
         {
             key: 'success',

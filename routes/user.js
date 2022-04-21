@@ -6,6 +6,10 @@ const User = require('../models/user');
 
 router.route('/register')
     .get((req, res) => {
+        if (req.isAuthenticated()) {
+            return res.redirect('/campgrounds');
+        }
+
         res.render('users/register');
     })
     .post(catchAsyncError (async (req, res) => {
@@ -35,11 +39,17 @@ router.route('/register')
 
 router.route('/login')
     .get((req, res) => {
-        res.render('users/login')
+        if (req.isAuthenticated()) {
+            return res.redirect('/campgrounds');
+        }
+
+        res.render('users/login');
     })
     .post(passport.authenticate('local', { failureFlash: true, failureRedirect: '/login' }), (req, res) => {
-        req.flash('success', 'Successfully login');
-        res.redirect('/campgrounds');
+        req.flash('success', 'Welcome to YelpCamp');
+        const redirectUrl = req.session.returnTo || '/campgrounds'; // Store either request page url from req.session.returnTo or campgrounds route
+        delete req.session.returnTo; // Delete the returnTo field from session
+        res.redirect(redirectUrl);
     });
 
 router.get('/logout', (req, res) => {
