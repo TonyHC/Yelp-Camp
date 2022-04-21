@@ -17,9 +17,16 @@ router.route('/register')
             const { username, email, password } = req.body;
             const user = new User({email, username});
             const registeredUser = await User.register(user, password);
-            
-            req.flash('success', 'Successfully created new user');
-            res.redirect('/campgrounds');
+           
+            // Creates a new session and login the registered user if no error occurred
+            req.login(registeredUser, function(err) {
+                if (err) {
+                    return next(err);
+                } 
+
+                req.flash('success', 'Successfully created new user');
+                res.redirect('/campgrounds');
+            });
         } catch (err) {
             req.flash('error', err.message);
             res.redirect('/register');
