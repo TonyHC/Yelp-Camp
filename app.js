@@ -61,6 +61,7 @@ app.use((req, res, next) => {
             value: req.flash('error')
         }
     ];
+    res.locals.currentUser = req.user;
     next();
 });
 
