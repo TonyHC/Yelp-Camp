@@ -9,6 +9,7 @@ const ExpressError = require('./utilities/ExpressError');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
+require('dotenv').config()
 
 const campgroundRoutes = require('./routes/campground');
 const reviewRoutes = require('./routes/review.js');
