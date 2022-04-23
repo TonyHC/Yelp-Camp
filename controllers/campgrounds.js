@@ -1,4 +1,5 @@
 const Campground = require('../models/campground');
+const { cloudinary } = require('../cloudinary/config');
 
 module.exports.index = async (req, res) => {
     const campgrounds = await Campground.find({});
@@ -10,6 +11,7 @@ module.exports.index = async (req, res) => {
 
 module.exports.createCampground = async (req, res) => {
     const campground = new Campground(req.body.campground);
+    campground.images = req.files.map(file => ({ url: file.path, filename: file.filename }));
     campground.author = req.user._id;
     await campground.save();
     
@@ -46,9 +48,27 @@ module.exports.showCampground = async (req, res) => {
 }
 
 module.exports.updateCampground = async (req, res) => {
-    const campground = await Campground.findByIdAndUpdate(req.params.id, req.body.campground);
-    
-    req.flash('success', 'Successfully updated campground info')
+    let campground = null;
+
+    if (!req.files.length > 0) {
+        campground = await Campground.findByIdAndUpdate(req.params.id, {...req.body.campground});
+        
+        if (req.body.deleteImages) {
+            for (let filename of req.body.deleteImages) {
+                await cloudinary.uploader.destroy(filename);
+            }
+
+            await campground.updateOne({$pull: {images: {filename: {$in: req.body.deleteImages}}}});
+        }
+        
+        req.flash('success', 'Successfully updated campground info');
+    } else {
+        campground = await Campground.findById(req.params.id);
+        campground.images.push(...req.files.map(file => ({ url: file.path, filename: file.filename })));
+        await campground.save();
+        req.flash('success', 'Successfully uploaded campground images');
+    }
+
     res.redirect(`/campgrounds/${campground._id}`);
 }
 
@@ -67,6 +87,19 @@ module.exports.renderEditForm = async (req, res) => {
     }
 
     res.render('campgrounds/edit', {
+        campground: campground
+    });
+}
+
+module.exports.renderImageUploadForm = async (req, res) => {
+    const campground = await Campground.findById(req.params.id);
+
+    if (!campground) {
+        req.flash('error', 'Cannot find that campground!');
+        return res.redirect('/campgrounds');
+    }
+
+    res.render('campgrounds/imageUpload', {
         campground: campground
     });
 }
