@@ -11,6 +11,9 @@ imageSchema.virtual('thumbnail').get(function() {
     return this.url.replace('/upload', '/upload/w_200,h_150');
 });
 
+// Allows Mongoose to include virtuals when converting a document to JSON
+const opts = { toJSON: { virtuals: true } };
+
 const campgroundSchema = new mongoose.Schema({
     title: String,
     images: [imageSchema],
@@ -38,7 +41,7 @@ const campgroundSchema = new mongoose.Schema({
             ref: 'Review'
         }
     ]
-});
+}, opts);
 
 campgroundSchema.post('findOneAndDelete', async function(campground) {
     if (campground) {
@@ -48,6 +51,11 @@ campgroundSchema.post('findOneAndDelete', async function(campground) {
             }}
         );
     }
+});
+
+campgroundSchema.virtual('properties.popUpMarkUp').get(function() {
+    return `<strong><a href="/campgrounds/${this._id}">${this.title}</a></strong>` 
+                + `<p>${this.description.substring(0,30)}</p>`;
 });
 
 const Campground = mongoose.model("Campground", campgroundSchema);
