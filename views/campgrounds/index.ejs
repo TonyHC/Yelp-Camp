@@ -1,6 +1,12 @@
 <% layout('layouts/boilerplate') %>
 <div id="cluster-map"></div>
 <h1>Campgrounds</h1>
+<form action="/campgrounds" method="GET">
+    <div class="input-group search-input mb-3">
+        <input type="search" class="form-control" placeholder="Search campground..." name="search" id="search">
+        <button class="btn btn-outline-secondary" type="submit" id="search">Search</button>
+      </div>
+</form>
 <% for (let campground of campgrounds) { %>
     <div class="card mt-3">
         <div class="row">

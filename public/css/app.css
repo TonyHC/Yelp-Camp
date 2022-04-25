@@ -25,3 +25,7 @@ a {
 .navbar, .footer {
     background-color: #283C63;
 }
+
+.search-input {
+    width: 37.5%;
+}

@@ -6,7 +6,13 @@ const mapboxToken = process.env.MAPBOX_TOKEN;
 const geoCoder = mbxGeocoding({accessToken: mapboxToken});
 
 module.exports.index = async (req, res) => {
-    const campgrounds = await Campground.find({});
+    let campgrounds = null;
+
+    if (req.query.search) {
+        campgrounds = await Campground.find({title: {$regex: req.query.search, $options: "i"}});
+    } else {
+        campgrounds = await Campground.find({});
+    }
 
     res.render('campgrounds/index', {
         campgrounds: campgrounds
