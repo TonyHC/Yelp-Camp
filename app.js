@@ -9,6 +9,7 @@ const ExpressError = require('./utilities/ExpressError');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
+const mongoSanitize = require('express-mongo-sanitize');
 require('dotenv').config()
 
 const campgroundRoutes = require('./routes/campground');
@@ -43,6 +44,7 @@ app.use(session({
     }
 }));
 app.use(flash());
+app.use(mongoSanitize());
 
 app.use(passport.initialize());
 app.use(passport.session());
