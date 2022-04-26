@@ -8,7 +8,7 @@ const extension = (joi) => ({
         'string.escapeHTML': '{{#label}} must not include HTML!'
     },
     rules: {
-        escaepHTML: {
+        escapeHTML: {
             validate(value, helpers) {
                 const clean = sanitizeHTML(value, {
                     allowedTags: [],
@@ -29,10 +29,10 @@ const CustomJoi = Joi.extend(extension);
 
 module.exports.campgroundSchema = CustomJoi.object({
     campground: CustomJoi.object({
-        title: CustomJoi.string().required().escaepHTML(),
+        title: CustomJoi.string().required().escapeHTML(),
         price: CustomJoi.number().required().min(0),
-        location: CustomJoi.string().required().escaepHTML(),
-        description: CustomJoi.string().required ()
+        location: CustomJoi.string().required().escapeHTML(),
+        description: CustomJoi.string().required().escapeHTML()
     }),
     deleteImages: CustomJoi.array()
 });
@@ -40,6 +40,6 @@ module.exports.campgroundSchema = CustomJoi.object({
 module.exports.reviewSchema = CustomJoi.object({
     review: CustomJoi.object({
         rating: CustomJoi.number().required().min(0).max(5),
-        content: CustomJoi.string().required().escaepHTML()
+        content: CustomJoi.string().required().escapeHTML()
     }).required()
 });
