@@ -10,6 +10,8 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+const { scriptSrcUrls, styleSrcUrls, connectSrcUrls, fontSrcUrls } = require('./helmet/contentSecurityPolicy');
 require('dotenv').config()
 
 const campgroundRoutes = require('./routes/campground');
@@ -45,6 +47,29 @@ app.use(session({
 }));
 app.use(flash());
 app.use(mongoSanitize());
+app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin'},
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: [],
+            connectSrc: ["'self'", ...connectSrcUrls],
+            scriptSrc: ["'unsafe-inline'", "'self'", ...scriptSrcUrls],
+            styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+            workerSrc: ["'self'", "blob:"],
+            childSrc: ["blob:"],
+            objectSrc: [],
+            imgSrc: [
+                "'self'",
+                "blob:",
+                "data:",
+                "https://res.cloudinary.com/tonyhchao/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
+                "https://images.unsplash.com",
+            ],
+            fontSrc: ["'self'", ...fontSrcUrls],
+        }
+    }
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -54,9 +79,9 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
-    if(!['/login', '/register', '/'].includes(req.originalUrl)) {
+    if (!['/login', '/register', '/'].includes(req.originalUrl)) {
         // Store the url path of requested page 
-        req.session.returnTo = req.originalUrl; 
+        req.session.returnTo = req.originalUrl;
     }
 
     res.locals.flashMessages = [
@@ -88,7 +113,7 @@ app.all('*', (req, res, next) => {
 app.use((err, req, res, next) => {
     const { statusCode = 500, message = 'Something went wrong' } = err;
     res.status(statusCode)
-        .render('error',{
+        .render('error', {
             err: err
         });
 });
