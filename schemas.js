@@ -43,3 +43,7 @@ module.exports.reviewSchema = CustomJoi.object({
         content: CustomJoi.string().required().escapeHTML()
     }).required()
 });
+
+module.exports.searchCampgroundSchema = CustomJoi.object({
+    search: CustomJoi.string().required().escapeHTML()
+})
