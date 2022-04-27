@@ -19,7 +19,7 @@ const campgroundRoutes = require('./routes/campground');
 const reviewRoutes = require('./routes/review.js');
 const userRoutes = require('./routes/user');
 
-const db_url = 'mongodb://localhost:27017/yelp-camp';
+const db_url = process.env.MONGO_ATLAS_URL || 'mongodb://localhost:27017/yelp-camp';
 
 mongoose.connect(db_url)
     .then(() => {
@@ -39,8 +39,10 @@ app.use(express.urlencoded({ extended: true })); // Built-in middleware that run
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
 
+const sessionSecret = process.env.SESSION_SECRET || 'aplaceholdersecretfornow';
+
 app.use(session({
-    secret: 'aplaceholdersecretfornow',
+    secret: sessionSecret,
     store: MongoStore.create({
         mongoUrl: db_url,
         touchAfter: 24 * 60 * 60
@@ -104,6 +106,7 @@ app.use((req, res, next) => {
         }
     ];
     res.locals.currentUser = req.user;
+
     next();
 });
 
@@ -127,6 +130,8 @@ app.use((err, req, res, next) => {
         });
 });
 
-app.listen(3000, function() {
-    console.log("Running on port 3000");
+const port = process.env.PORT || 3000;
+
+app.listen(port, function() {
+    console.log(`Serving on port ${port}`);
 });
