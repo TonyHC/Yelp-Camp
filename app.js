@@ -12,13 +12,16 @@ const User = require('./models/user');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 const { scriptSrcUrls, styleSrcUrls, connectSrcUrls, fontSrcUrls } = require('./helmet/contentSecurityPolicy');
+const MongoStore = require('connect-mongo');
 require('dotenv').config()
 
 const campgroundRoutes = require('./routes/campground');
 const reviewRoutes = require('./routes/review.js');
 const userRoutes = require('./routes/user');
 
-mongoose.connect('mongodb://localhost:27017/yelp-camp')
+const db_url = 'mongodb://localhost:27017/yelp-camp';
+
+mongoose.connect(db_url)
     .then(() => {
         console.log("Database connected");
     })
@@ -35,8 +38,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true })); // Built-in middleware that runs during request/response lifecycle
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
+
 app.use(session({
     secret: 'aplaceholdersecretfornow',
+    store: MongoStore.create({
+        mongoUrl: db_url,
+        touchAfter: 24 * 60 * 60
+    }),
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -45,8 +53,9 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
 }));
+
 app.use(flash());
-app.use(mongoSanitize());
+app.use(mongoSanitize({ replaceWith: '_' }));
 app.use(helmet({
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin'},
